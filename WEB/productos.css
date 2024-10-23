@@ -1,0 +1,8 @@
+.products a::before{
+    content: "";
+    width: 100%;
+    height: 3px;
+    background-color: #222629;
+    position: absolute;
+    bottom: -4px;
+}
