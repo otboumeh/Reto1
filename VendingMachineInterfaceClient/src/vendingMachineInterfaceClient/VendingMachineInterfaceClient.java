@@ -28,7 +28,7 @@ public class VendingMachineInterfaceClient extends JFrame {
 	private JPanel contentPane;
 	public ImageIcon[] imagenes = new ImageIcon[5];
 	private JTextField textFieldProductUno1;
-	public int i = 0, o = 0, p = 0, a = 0;
+	private int countCocaCola = 0, o = 0, p = 0, a = 0;
 	private JTextField textFieldProductoDos1;
 	private JTextField textFieldProductotres1;
 	private JTextField textFieldProductocuatro1;
@@ -37,6 +37,8 @@ public class VendingMachineInterfaceClient extends JFrame {
 	private JPanel TipoSnacks = new JPanel();
 	private JPanel TipoSandwitch = new JPanel();
 	private JPanel TipoDulces = new JPanel();
+	private DefaultTableModel modeloRefrescos = new DefaultTableModel();
+
 
 	/**
 	 * Launch the application.
@@ -89,6 +91,106 @@ public class VendingMachineInterfaceClient extends JFrame {
 		CardLayout layout = (CardLayout) getContentPane().getLayout();
 		layout.show(getContentPane(), "Tipos");
 	}
+//	private void removeRowByData(DefaultTableModel model, Object[] rowData) {
+//	    for (int rowIndex = 0; rowIndex < model.getRowCount(); rowIndex++) {
+//	        boolean match = true;
+//	        for (int columnIndex = 0; columnIndex < model.getColumnCount(); columnIndex++) {
+//	            if (!model.getValueAt(rowIndex, columnIndex).equals(rowData[columnIndex])) {
+//	                match = false;
+//	                break;
+//	            }
+//	        }
+//	        if (match) {
+//	            model.removeRow(rowIndex);  // Remove the row once a match is found
+//	            break;  // Exit the loop after removing the row
+//	        }
+//	    }
+//	}
+	private void addButtonHandler(DefaultTableModel tableModel, String productName, String productPrice, double priceIncrement, JTextField textField) {
+	    boolean productExists = false;
+
+	    // Check if the product already exists in the table
+	    for (int rowIndex = 0; rowIndex < tableModel.getRowCount(); rowIndex++) {
+	        String product = (String) tableModel.getValueAt(rowIndex, 0);  // Column 0 for product name
+	        if (product.equals(productName)) {
+	            productExists = true;
+
+	            // Get the current price from the table (Column 1 for price)
+	            String currentPriceStr = (String) tableModel.getValueAt(rowIndex, 1);
+
+	            // Replace comma with dot to ensure correct parsing
+	            currentPriceStr = currentPriceStr.replace(",", ".");
+
+	            // Parse the string into a double
+	            double currentPrice = Double.parseDouble(currentPriceStr);
+
+	            // Increment the price
+	            currentPrice += priceIncrement;  // Increment by the specified amount
+
+	            // Update the table model with the new price (format as 2 decimal places)
+	            tableModel.setValueAt(String.format("%.2f", currentPrice), rowIndex, 1);
+	            break;  // Exit loop once the row is found and updated
+	        }
+	    }
+
+	    // If the product does not exist, add it to the table
+	    if (!productExists) {
+	        // Use the provided productPrice as the initial price for the new product
+	        tableModel.addRow(new Object[]{productName, String.format("%.2f", Double.parseDouble(productPrice))});  // Format the initial price
+	    }
+	}
+	private void removeButtonHandler(DefaultTableModel tableModel, String productName, double priceDecrement, JTextField textField) {
+	    boolean productExists = false;
+
+	    // Check if the product already exists in the table
+	    for (int rowIndex = 0; rowIndex < tableModel.getRowCount(); rowIndex++) {
+	        String product = (String) tableModel.getValueAt(rowIndex, 0);  // Column 0 for product name
+	        if (product.equals(productName)) {
+	            productExists = true;
+
+	            // Get the current price from the table (Column 1 for price)
+	            String currentPriceStr = (String) tableModel.getValueAt(rowIndex, 1);
+
+	            // Replace comma with dot to ensure correct parsing
+	            currentPriceStr = currentPriceStr.replace(",", ".");
+
+	            // Parse the string into a double
+	            double currentPrice = Double.parseDouble(currentPriceStr);
+
+	            // Decrement the price
+	            currentPrice -= priceDecrement;  // Decrement by the specified amount
+
+	            // Ensure the price does not go below zero
+	            if (currentPrice < 0) {
+	                currentPrice = 0;
+	            }
+
+	            // Update the table model with the new price (format as 2 decimal places)
+	            tableModel.setValueAt(String.format("%.2f", currentPrice), rowIndex, 1);
+	            break;  // Exit loop once the row is found and updated
+	        }
+	    }
+
+	    // If the product does not exist, you can optionally handle it here
+	    if (!productExists) {
+	        // You might want to display a message or log that the product does not exist
+	        textField.setText("Product not found.");
+	    }
+	}
+
+		
+//	private void restButtonHandler(){
+//		
+//		
+//	}
+	 private void removeProductFromTable(DefaultTableModel tableModel, String productName) {
+	        for (int rowIndex = tableModel.getRowCount() - 1; rowIndex >= 0; rowIndex--) {
+	            String product = (String) tableModel.getValueAt(rowIndex, 0); // Column 0 for product name
+	            if (product.equalsIgnoreCase(productName)) { // Case-insensitive comparison
+	                tableModel.removeRow(rowIndex); // Remove the row
+	            }
+	        }
+	    }
 
 	private void RefrescosHandler() {
 
@@ -125,7 +227,7 @@ public class VendingMachineInterfaceClient extends JFrame {
 		TipoRefrescos.add(BtnMenosproductoCuatro1);
 		textFieldProductUno1 = new JTextField();
 		textFieldProductUno1.setBounds(55, 382, 40, 20);
-		textFieldProductUno1.setText(Integer.toString(i)); // Converts int i to String
+		textFieldProductUno1.setText(Integer.toString(countCocaCola)); // Converts int i to String
 		textFieldProductUno1.setEditable(false);
 		TipoRefrescos.add(textFieldProductUno1);
 		textFieldProductUno1.setColumns(10);
@@ -159,21 +261,69 @@ public class VendingMachineInterfaceClient extends JFrame {
 			}
 		});
 		BtnplusProductoUno1.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				i++;
-				textFieldProductUno1.setText(Integer.toString(i));
-			}
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+		        countCocaCola++; // Increment the count
+		        textFieldProductUno1.setText(Integer.toString(countCocaCola)); // Update the text field
+		        addButtonHandler(modeloRefrescos, "Coca-Cola", "1.00", 1.00, textFieldProductUno1); // Call the handler
+		    }
 		});
+//		BtnMenosproductoUno1.addMouseListener(new MouseAdapter() {
+//			@Override
+//			 public void mouseClicked(MouseEvent e) {
+//		        if (countCocaCola > 0) {
+//		        	countCocaCola--;
+//		            textFieldProductUno1.setText(Integer.toString(countCocaCola));
+//
+//		            // Check if "Coca-Cola" exists in the table
+//		            for (int rowIndex = 0; rowIndex < modeloRefrescos.getRowCount(); rowIndex++) {
+//		                String product = (String) modeloRefrescos.getValueAt(rowIndex, 0);  // Column 0 for product name
+//		                if (product.equals("Coca-Cola")) {
+//
+//		                    // Get the current price from the table (Column 1 for price)
+//		                    String currentPriceStr = (String) modeloRefrescos.getValueAt(rowIndex, 1);
+//
+//		                    // Replace comma with dot to ensure correct parsing
+//		                    currentPriceStr = currentPriceStr.replace(",", ".");
+//
+//		                    // Parse the string into a double
+//		                    double currentPrice = Double.parseDouble(currentPriceStr);
+//
+//		                    // If quantity is greater than 0, decrement the price
+//		                    if (countCocaCola > 0) {
+//		                        currentPrice -= 1;  // Decrement by 0.50
+//		                        modeloRefrescos.setValueAt(String.format("%.2f", currentPrice), rowIndex, 1);  // Update the price
+//		                    }
+//
+//		                    // If quantity is zero, remove the row
+//		                    if (countCocaCola == 0) {
+//		                        modeloRefrescos.removeRow(rowIndex);  // Remove the row when quantity reaches zero
+//		                    }
+//
+//		                    break;  // Exit loop once the row is found and updated
+//		                }
+//		            }
+//		        }
+//		    }
+//		});
 		BtnMenosproductoUno1.addMouseListener(new MouseAdapter() {
-			@Override
-			public void mouseClicked(MouseEvent e) {
-				if (i > 0) {
-					i--;
-					textFieldProductUno1.setText(Integer.toString(i));
-				}
-			}
+		    @Override
+		    public void mouseClicked(MouseEvent e) {
+		        // Only decrement if countCocaCola is greater than 0
+		        if (countCocaCola > 0) {
+		            countCocaCola--; // Decrement the count
+		            textFieldProductUno1.setText(Integer.toString(countCocaCola)); // Update the text field
+
+		            if (countCocaCola == 0) {
+		                removeProductFromTable(modeloRefrescos, "Coca-Cola"); // Call the remove method
+		            } else {
+		                addButtonHandler(modeloRefrescos, "Coca-Cola", "1.00", -1.00, textFieldProductUno1); // Update price down
+		            }
+		        }
+		    }
 		});
+
+
 
 		BtnMenosproductoDos1.addMouseListener(new MouseAdapter() {
 			@Override
@@ -256,14 +406,13 @@ public class VendingMachineInterfaceClient extends JFrame {
 	    TipoRefrescos.add(scrollPaneRefrescos);
 
 	    // Create table model with column names
-	    DefaultTableModel modeloRefrescos = new DefaultTableModel();
 	    modeloRefrescos.addColumn("Producto"); // Column 1
 	    modeloRefrescos.addColumn("Precio");   // Column 2
 
 	    // Add rows to the table model
-	    modeloRefrescos.addRow(new Object[]{"Coca-Cola", "1.00"});  // Row 1
-	    modeloRefrescos.addRow(new Object[]{"Pepsi", "0.95"});      // Row 2
-	    modeloRefrescos.addRow(new Object[]{"Fanta", "0.90"});      // Row 3
+	    // Row 1
+//	    modeloRefrescos.addRow(new Object[]{"Pepsi", "0.95"});      // Row 2
+//	    modeloRefrescos.addRow(new Object[]{"Fanta", "0.90"});      // Row 3
 
 	    // Create the table using the model
 	    JTable tableRefrescos = new JTable(modeloRefrescos);
